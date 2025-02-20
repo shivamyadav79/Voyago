@@ -1,7 +1,6 @@
-// controllers/adminController.js
 import City from "../models/City.js";
-import User from "../models/User.js";
 import Place from "../models/Place.js";
+import User from "../models/User.js";
 import Review from "../models/Review.js";
 
 /**
@@ -28,13 +27,11 @@ export const createCity = async (req, res) => {
 
 /**
  * Updates an existing city.
- * Expects: City ID in URL and fields to update in the request body.
+ * Expects: City ID in URL and updated fields in the body.
  */
 export const updateCity = async (req, res) => {
   try {
-    const updatedCity = await City.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+    const updatedCity = await City.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (!updatedCity) {
       return res.status(404).json({ error: "City not found" });
     }
@@ -61,11 +58,83 @@ export const deleteCity = async (req, res) => {
 };
 
 /**
- * Gets a list of all users.
+ * Creates a new place.
+ * Expects JSON: { name, type, description, address, location, contact, rating, images, priceRange, shareableUrl, city }
+ */
+export const createPlace = async (req, res) => {
+  try {
+    const {
+      name,
+      type,
+      description,
+      address,
+      location,
+      contact,
+      rating,
+      images,
+      priceRange,
+      shareableUrl,
+      city,
+    } = req.body;
+
+    const newPlace = new Place({
+      name,
+      type,
+      description,
+      address,
+      location,
+      contact,
+      rating,
+      images,
+      priceRange,
+      shareableUrl,
+      city,
+    });
+    await newPlace.save();
+    res.status(201).json(newPlace);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Updates an existing place.
+ * Expects: Place ID in URL and updated fields in the body.
+ */
+export const updatePlace = async (req, res) => {
+  try {
+    const updatedPlace = await Place.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updatedPlace) {
+      return res.status(404).json({ error: "Place not found" });
+    }
+    res.json(updatedPlace);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Deletes a place.
+ * Expects: Place ID in URL.
+ */
+export const deletePlace = async (req, res) => {
+  try {
+    const deletedPlace = await Place.findByIdAndDelete(req.params.id);
+    if (!deletedPlace) {
+      return res.status(404).json({ error: "Place not found" });
+    }
+    res.json({ message: "Place deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Gets all users (excluding passwords).
  */
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}, "-password"); // Exclude password field for security
+    const users = await User.find({}, "-password");
     res.json(users);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -77,8 +146,7 @@ export const getAllUsers = async (req, res) => {
  */
 export const deleteUser = async (req, res) => {
   try {
-    const userId = req.params.id;
-    const deletedUser = await User.findByIdAndDelete(userId);
+    const deletedUser = await User.findByIdAndDelete(req.params.id);
     if (!deletedUser) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -89,8 +157,7 @@ export const deleteUser = async (req, res) => {
 };
 
 /**
- * Gets basic analytics counts.
- * Returns counts of users, cities, places, and reviews.
+ * Gets analytics data (counts of users, cities, places, reviews).
  */
 export const getAnalytics = async (req, res) => {
   try {
